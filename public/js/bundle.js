@@ -35,7 +35,7 @@ var App = function (_React$Component) {
         'div',
         null,
         this.props.children,
-        '#'
+        '# HELLO WORLD 21 22  3213 1js'
       );
     }
   }]);

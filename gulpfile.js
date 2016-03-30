@@ -1,3 +1,5 @@
+'use strict';
+
 var gulp = require('gulp');
 var gutil = require('gulp-util');
 var gulpif = require('gulp-if');
@@ -13,6 +15,10 @@ var browserify = require('browserify');
 var watchify = require('watchify');
 var uglify = require('gulp-uglify');
 var sourcemaps = require('gulp-sourcemaps');
+
+var browserSync = require('browser-sync');
+var nodemon = require('gulp-nodemon');
+var reload = browserSync.reload;
 
 var production = process.env.NODE_ENV === 'production';
 
@@ -93,6 +99,7 @@ gulp.task('browserify-watch', ['browserify-vendor'], function() {
       })
       .on('end', function() {
         gutil.log(gutil.colors.green('Finished rebundling in', (Date.now() - start) + 'ms.'));
+        reload(); // browser-sync
       })
       .pipe(source('bundle.js'))
       .pipe(buffer())
@@ -120,5 +127,29 @@ gulp.task('watch', function() {
   gulp.watch('app/stylesheets/**/*.less', ['styles']);
 });
 
-gulp.task('default', ['styles', 'vendor', 'browserify-watch', 'watch']);
+gulp.task('browser-sync', ['nodemon'], function() {
+	browserSync.init(null, {
+		proxy: "http://localhost:3000",
+        files: ['public/**/*.*'],
+        port: 3000,
+	});
+});
+gulp.task('nodemon', function (cb) {
+
+	var started = false;
+
+	return nodemon({
+		script: 'server.js'
+	}).on('start', function () {
+		// to avoid nodemon being started multiple times
+		// thanks @matthisk
+		if (!started) {
+			cb();
+			started = true;
+		}
+	});
+});
+
+
+gulp.task('default', ['styles', 'vendor', 'browserify-watch', 'watch', 'browser-sync']);
 gulp.task('build', ['styles', 'vendor', 'browserify']);
